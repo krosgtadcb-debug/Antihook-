@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.WebSockets;
 using System.Text;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -198,10 +199,32 @@ namespace BF3AntiHook.BF3AntiHook
             var action = JsonConvert.DeserializeObject<AdminActionPayload>(JsonConvert.SerializeObject(envelope.Payload));
             if (action == null || String.IsNullOrWhiteSpace(action.Action) || String.IsNullOrWhiteSpace(action.UserId) || String.IsNullOrWhiteSpace(action.Reason))
                 return;
-            WriteInfo(String.Format("ADMIN action={0} target={1} actor={2} reason={3}", action.Action, action.UserId, session.User.Username, action.Reason));
-            await BroadcastAdminEventAsync(new { Action = action.Action, UserId = action.UserId, Reason = action.Reason, Actor = session.User.Username }, cancellationToken).ConfigureAwait(false);
+            var target = FindSession(action.UserId);
+            database.RecordAudit(session.User.userid, target == null ? action.UserId : target.User.userid, action.Action, action.Reason);
+            if (String.Equals(action.Action, "ban", StringComparison.OrdinalIgnoreCase) && target != null)
+                database.CreateBan(target.User.userid, HashValue(target.User.HWID), HashValue(target.User.IP), action.Reason, session.User.userid);
+            WriteInfo(String.Format("ADMIN action={0} target={1} actor={2} reason={3}", action.Action, action.User.Username, session.User.Username, action.Reason));
+            await BroadcastAdminEventAsync(new { Action = action.Action, UserId = action.User.Username, Reason = action.Reason, Actor = session.User.Username }, cancellationToken).ConfigureAwait(false);
+            if (target != null && (String.Equals(action.Action, "ban", StringComparison.OrdinalIgnoreCase) || String.Equals(action.Action, "kick", StringComparison.OrdinalIgnoreCase)))
+            {
+                try { await target.Socket.CloseAsync(WebSocketCloseStatus.PolicyViolation, action.Action, cancellationToken).ConfigureAwait(false); } catch { }
+            }
             if (String.Equals(action.Action, "ban", StringComparison.OrdinalIgnoreCase))
                 await BroadcastSpeechAsync("UsuarioBaneado ha sido baneado por proceso sospechoso.", cancellationToken).ConfigureAwait(false);
+        }
+
+        private Session FindSession(string username)
+        {
+            foreach (var entry in sessions)
+                if (String.Equals(entry.Value.User.Username, username, StringComparison.OrdinalIgnoreCase)) return entry.Value;
+            return null;
+        }
+
+        private static string HashValue(string value)
+        {
+            if (String.IsNullOrWhiteSpace(value)) return null;
+            using (var sha = SHA256.Create())
+                return BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(value))).Replace("-", "").ToLowerInvariant();
         }
 
         private async Task BroadcastAdminEventAsync(object payload, CancellationToken cancellationToken)

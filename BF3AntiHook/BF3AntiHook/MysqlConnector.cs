@@ -5,6 +5,7 @@
 // Assembly location: C:\Users\Ernestico\Desktop\BF3AntiHook.exe
 
 using MySqlConnector;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -77,6 +78,43 @@ namespace BF3AntiHook.BF3AntiHook
         }
       }
       return serversList;
+    }
+
+    public bool RecordAudit(string actorUserId, string targetUserId, string action, string reason)
+    {
+      try
+      {
+        using (var command = this.conection.CreateCommand())
+        {
+          command.CommandText = "INSERT INTO antihook_audit_events (actor_user_id, target_user_id, action_name, reason) VALUES (@actor, @target, @action, @reason);";
+          command.Parameters.AddWithValue("@actor", String.IsNullOrWhiteSpace(actorUserId) ? (object)DBNull.Value : actorUserId);
+          command.Parameters.AddWithValue("@target", String.IsNullOrWhiteSpace(targetUserId) ? (object)DBNull.Value : targetUserId);
+          command.Parameters.AddWithValue("@action", action ?? "unknown");
+          command.Parameters.AddWithValue("@reason", reason ?? "");
+          command.ExecuteNonQuery();
+          return true;
+        }
+      }
+      catch { return false; }
+    }
+
+    public bool CreateBan(string userId, string hwidHash, string ipHash, string reason, string createdBy)
+    {
+      try
+      {
+        using (var command = this.conection.CreateCommand())
+        {
+          command.CommandText = "INSERT INTO antihook_bans (user_id, hwid_hash, ip_hash, reason, created_by) VALUES (@user, @hwid, @ip, @reason, @actor);";
+          command.Parameters.AddWithValue("@user", String.IsNullOrWhiteSpace(userId) ? (object)DBNull.Value : userId);
+          command.Parameters.AddWithValue("@hwid", String.IsNullOrWhiteSpace(hwidHash) ? (object)DBNull.Value : hwidHash);
+          command.Parameters.AddWithValue("@ip", String.IsNullOrWhiteSpace(ipHash) ? (object)DBNull.Value : ipHash);
+          command.Parameters.AddWithValue("@reason", reason ?? "");
+          command.Parameters.AddWithValue("@actor", String.IsNullOrWhiteSpace(createdBy) ? (object)DBNull.Value : createdBy);
+          command.ExecuteNonQuery();
+          return true;
+        }
+      }
+      catch { return false; }
     }
   }
 }
