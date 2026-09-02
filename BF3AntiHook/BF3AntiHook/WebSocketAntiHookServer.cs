@@ -98,6 +98,10 @@ namespace BF3AntiHook.BF3AntiHook
                         session.SubscribedToServers = true;
                         await SendServerSnapshotAsync(session, cancellationToken).ConfigureAwait(false);
                     }
+                    else if (envelope.Type == WebSocketMessageTypes.AdminUserAction)
+                    {
+                        await HandleAdminActionAsync(session, envelope, cancellationToken).ConfigureAwait(false);
+                    }
                     else if (envelope.Type == WebSocketMessageTypes.Ping)
                     {
                         await SendAsync(socket, WebSocketEnvelope.Create(WebSocketMessageTypes.Pong, null, sessionId: session.Id), cancellationToken).ConfigureAwait(false);
@@ -141,6 +145,36 @@ namespace BF3AntiHook.BF3AntiHook
             var session = new Session(Guid.NewGuid().ToString("N"), matched, endpoint == null ? "" : endpoint.Address.ToString());
             await SendAsync(socket, WebSocketEnvelope.Create(WebSocketMessageTypes.AuthOk, new { SessionId = session.Id, Token = Guid.NewGuid().ToString("N") }, sessionId: session.Id), cancellationToken).ConfigureAwait(false);
             return session;
+        }
+
+        private async Task HandleAdminActionAsync(Session session, WebSocketEnvelope envelope, CancellationToken cancellationToken)
+        {
+            if (!String.Equals(session.User.Role, "admin", StringComparison.OrdinalIgnoreCase))
+            {
+                await SendAsync(session.Socket, WebSocketEnvelope.Create(WebSocketMessageTypes.AuthError, new { Message = "Permisos insuficientes" }, sessionId: session.Id), cancellationToken).ConfigureAwait(false);
+                return;
+            }
+            var action = JsonConvert.DeserializeObject<AdminActionPayload>(JsonConvert.SerializeObject(envelope.Payload));
+            if (action == null || String.IsNullOrWhiteSpace(action.Action) || String.IsNullOrWhiteSpace(action.UserId) || String.IsNullOrWhiteSpace(action.Reason))
+                return;
+            WriteInfo(String.Format("ADMIN action={0} target={1} actor={2} reason={3}", action.Action, action.UserId, session.User.Username, action.Reason));
+            await BroadcastAdminEventAsync(new { Action = action.Action, UserId = action.UserId, Reason = action.Reason, Actor = session.User.Username }, cancellationToken).ConfigureAwait(false);
+            if (String.Equals(action.Action, "ban", StringComparison.OrdinalIgnoreCase))
+                await BroadcastSpeechAsync("UsuarioBaneado ha sido baneado por proceso sospechoso.", cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task BroadcastAdminEventAsync(object payload, CancellationToken cancellationToken)
+        {
+            foreach (var entry in sessions)
+                if (entry.Value.Socket != null && entry.Value.Socket.State == WebSocketState.Open)
+                    await SendAsync(entry.Value.Socket, WebSocketEnvelope.Create(WebSocketMessageTypes.AdminEvent, payload, sessionId: entry.Value.Id), cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task BroadcastSpeechAsync(string text, CancellationToken cancellationToken)
+        {
+            foreach (var entry in sessions)
+                if (entry.Value.Socket != null && entry.Value.Socket.State == WebSocketState.Open)
+                    await SendAsync(entry.Value.Socket, WebSocketEnvelope.Create(WebSocketMessageTypes.SpeechNotification, new { Text = text }, sessionId: entry.Value.Id), cancellationToken).ConfigureAwait(false);
         }
 
         private async Task SendServerSnapshotAsync(Session session, CancellationToken cancellationToken)
@@ -192,6 +226,14 @@ namespace BF3AntiHook.BF3AntiHook
             if (cancellation != null) cancellation.Cancel();
             if (listener.IsListening) listener.Stop();
             listener.Close();
+        }
+
+        private sealed class AdminActionPayload
+        {
+            public string Action { get; set; }
+            public string UserId { get; set; }
+            public string Reason { get; set; }
+            public bool Confirmed { get; set; }
         }
 
         private sealed class Session
