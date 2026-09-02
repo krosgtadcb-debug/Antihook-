@@ -146,9 +146,30 @@ namespace BF3AntiHook.BF3AntiHook
                 return null;
             }
 
-            var session = new Session(Guid.NewGuid().ToString("N"), matched, endpoint == null ? "" : endpoint.Address.ToString());
+            var ip = endpoint == null ? "" : endpoint.Address.ToString();
+            var sessionUser = new User
+            {
+                Username = matched.Username,
+                userid = matched.userid,
+                AutToken = matched.AutToken,
+                Role = matched.Role,
+                IP = ip,
+                HWID = payload.Hwid,
+                LongIP = ToLongIp(ip)
+            };
+            var session = new Session(Guid.NewGuid().ToString("N"), sessionUser, ip);
             await SendAsync(socket, WebSocketEnvelope.Create(WebSocketMessageTypes.AuthOk, new { SessionId = session.Id, Token = Guid.NewGuid().ToString("N") }, sessionId: session.Id), cancellationToken).ConfigureAwait(false);
             return session;
+        }
+
+        private static string ToLongIp(string ip)
+        {
+            IPAddress address;
+            if (!IPAddress.TryParse(ip, out address) || address.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
+                return "";
+            var bytes = address.GetAddressBytes();
+            if (BitConverter.IsLittleEndian) Array.Reverse(bytes);
+            return BitConverter.ToUInt32(bytes, 0).ToString();
         }
 
         private async Task SendUsersListAsync(Session session, CancellationToken cancellationToken)
