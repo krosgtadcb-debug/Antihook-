@@ -1,0 +1,41 @@
+ANTIHОOK BF3 - CLIENTE
+CHANGELOG v1.0
+Desarrollador: OxyMonster
+
+[Implementado]
+
+- Se añadió el contrato de mensajes WebSocket v1 con type, requestId, timestamp, sessionId y payload.
+- Se creó un cliente WebSocket persistente para reemplazar gradualmente el transporte TCP legado.
+- El cliente mantiene una sesión abierta, procesa mensajes por frames y limita el tamaño máximo de mensajes.
+- Se añadió heartbeat mediante mensajes ping/pong.
+- El login del cliente fue conectado al flujo WebSocket y, tras recibir auth.ok, abre el GameHub.
+- Se añadió la pantalla GameHub con navegación inicial para Battlefield 3.
+- Se añadió la pantalla de servidores de Battlefield 3 con tabla de nombre, mapa, jugadores y ping.
+- La pantalla de Battlefield 3 recibe actualizaciones push del servidor sin polling manual.
+- Se añadió la suscripción servers.subscribe para solicitar el canal de actualizaciones de Battlefield 3.
+- Se añadió el panel visual de usuarios conectados con Nombre, HWID, IP y LongIP.
+- El panel administrativo solicita un motivo antes de enviar una acción.
+- Se añadieron las acciones de captura de pantalla, captura de procesos, captura de módulos, speech, expulsión y baneo como comandos administrativos auditables.
+- Se añadió soporte para recibir eventos administrativos y notificaciones de speech.
+- Se añadió DefensiveAntiCheat como reemplazo seguro de la supervisión agresiva anterior.
+- DefensiveAntiCheat inspecciona señales del proceso del juego y módulos configurados, sin matar procesos, inyectar código, leer memoria arbitraria ni elevar privilegios.
+- Se añadió hashing SHA-256 para archivos y valores sensibles cuando sea necesario reportar una señal.
+- Se mantuvo la compatibilidad con la ejecución del juego mediante el flujo existente de Battlefield 3.
+
+[Seguridad]
+
+- Las acciones administrativas requieren sesión WebSocket autenticada y rol admin.
+- Las acciones requieren motivo y se registran en el servidor.
+- No se almacenan contraseñas desde el cliente.
+- El cliente no implementa rootkits, drivers no firmados, ocultación, evasión de antivirus o vigilancia fuera del contexto autorizado.
+- Una señal aislada del anticheat no debe producir un baneo automático.
+
+[Pendiente]
+
+- Validar compilación final con Visual Studio/MSBuild en Windows.
+- Configurar el endpoint WebSocket real del despliegue.
+- Validar la migración SQL y los roles administrativos.
+- Añadir indicadores visuales de consentimiento para cada captura remota.
+- Completar las pruebas de integración cliente-servidor.
+
+Rama: feature/version-1.0-foundation

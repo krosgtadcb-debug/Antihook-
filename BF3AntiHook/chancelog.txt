@@ -1,0 +1,51 @@
+ANTIHОOK BF3 - SERVIDOR
+CHANGELOG v1.0
+Desarrollador: OxyMonster
+
+[Implementado]
+
+- Se añadió el contrato de mensajes WebSocket v1 con type, requestId, timestamp, sessionId y payload.
+- Se creó un listener HttpListener para aceptar conexiones WebSocket en la ruta /ws/.
+- El servidor mantiene sesiones concurrentes y elimina las sesiones desconectadas.
+- Se añadió autenticación mediante usuario y contraseña contra la base de datos existente.
+- El rol administrativo se obtiene desde devTeam como compatibilidad con el esquema legacy.
+- El servidor asocia a cada sesión el usuario, HWID, IP remota y LongIP calculado.
+- Se añadió validación básica de mensajes y un límite de un megabyte por mensaje.
+- Se añadió heartbeat ping/pong para mantener las sesiones activas.
+- Se implementó servers.subscribe para suscribir clientes a Battlefield 3.
+- El servidor envía snapshots servers.updated automáticamente cada dos segundos a las sesiones suscritas.
+- Se añadió consulta administrativa admin.users.list para entregar usuarios conectados autorizados.
+- Se añadieron acciones administrativas protegidas por rol: captura de pantalla, procesos, módulos, speech, expulsión y baneo.
+- Las acciones administrativas requieren acción, usuario, motivo y una sesión autenticada con rol admin.
+- Se añadió persistencia versionada para auditoría y baneos mediante sql/v1_admin_security.sql.
+- Los baneos guardan hashes de HWID e IP en lugar de exponer esos valores como identificadores de bloqueo.
+- La expulsión y el baneo cierran la sesión WebSocket objetivo cuando está conectada.
+- Un baneo emite a los clientes conectados la notificación: UsuarioBaneado ha sido baneado por proceso sospechoso.
+- Se conservó el servidor TCP legado separado para permitir una migración gradual y rollback durante pruebas.
+- El formulario principal del servidor inicia el listener WebSocket v1.
+
+[Seguridad]
+
+- Las consultas de auditoría y baneo usan parámetros MySQL.
+- Las acciones administrativas se rechazan si la sesión no tiene rol admin.
+- Los valores HWID e IP se protegen mediante SHA-256 antes de almacenarse como evidencia de baneo.
+- El servidor no confía en una coincidencia aislada de nombre de proceso para banear automáticamente.
+- No se incluyen rootkits, drivers no firmados, inyección de código, lectura arbitraria de memoria, ocultación ni evasión de controles del sistema.
+- Las capturas remotas deben incorporar consentimiento informado, indicador visible, rate limit y registro de auditoría antes de activarse en producción.
+
+[Base de datos]
+
+- Se añadió sql/v1_admin_security.sql con las tablas antihook_roles, antihook_bans y antihook_audit_events.
+- La migración debe ejecutarse después de realizar un respaldo de la base de datos.
+- El campo devTeam distinto de cero se admite como ruta de compatibilidad para detectar administradores mientras se adoptan los roles nuevos.
+
+[Pendiente]
+
+- Validar compilación final con Visual Studio/MSBuild en Windows.
+- Configurar la URL ACL de HttpListener y el endpoint real del despliegue.
+- Ejecutar la migración SQL en el entorno objetivo.
+- Añadir TLS mediante wss:// en producción.
+- Completar la implementación consentida de captura de pantalla, procesos, módulos y speech.
+- Añadir pruebas automatizadas de protocolo, autorización, reconexión y rate limit.
+
+Rama: feature/version-1.0-foundation
