@@ -82,6 +82,7 @@
     <Compile Include="Antihookclient\WebSocketAntiHookClient.cs" />
     <Compile Include="ConfigFile.cs" />
     <Compile Include="Configuration.cs" />
+    <Compile Include="GameHubForm.cs" />
     <Compile Include="Controles\UserControl1.cs">
       <SubType>UserControl</SubType>
     </Compile>
