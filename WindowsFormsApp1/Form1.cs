@@ -13,6 +13,7 @@ namespace WindowsFormsApp1
     public partial class Form1 : Form
     {
         private Antihookclient.AntiHookClient anthook;
+        private Antihookclient.WebSocketAntiHookClient websocketClient;
         private Task conectar;
 
         public Form1()
@@ -25,78 +26,28 @@ namespace WindowsFormsApp1
 
         }
 
-        private void Button1_Click(object sender, EventArgs e)
+        private async void Button1_Click(object sender, EventArgs e)
         {
-
-            panel1.Controls.Clear();
-
-            conectar = new Task(async () =>
+            button1.Enabled = false;
+            try
             {
-
-                if (anthook == null)
+                if (websocketClient != null) websocketClient.Dispose();
+                websocketClient = new Antihookclient.WebSocketAntiHookClient();
+                websocketClient.ConnectionChanged += Anthook_OnConnects;
+                websocketClient.Notification += message => { if (!IsDisposed) BeginInvoke(new Action(() => Text = "Antihook | " + message)); };
+                var connected = await websocketClient.ConnectAndLoginAsync(textBox1.Text.Trim(), 4040, textBox2.Text.Trim(), textBox3.Text, BF3AntiHook.BF3AntiHook.Mensaje.GetDiskId(), System.Threading.CancellationToken.None);
+                if (connected)
                 {
-                    anthook = new Antihookclient.AntiHookClient();
-                    anthook.OnConnects += Anthook_OnConnects;
-                    anthook.baneado += Anthook_baneado;
-                    anthook.OnserversGet += Anthook_OnserversGet;
+                    Hide();
+                    using (var hub = new GameHubForm(textBox2.Text.Trim(), false, websocketClient)) hub.ShowDialog(this);
+                    Show();
                 }
-
-
-                if (button1.InvokeRequired)
-                {
-                    button1.Invoke(new Action(() =>
-                    {
-                        button1.Enabled = false;
-                    }));
-                }
-                string server = textBox1.Text;
-
-                var a = await anthook.Connect(server, textBox2.Text, textBox3.Text);
-
-                if (!a)
-                {
-                    if (button1.InvokeRequired)
-                    {
-
-                        button1.Invoke(new Action(() =>
-                        {
-                            button1.Enabled = true;
-                        }));
-                    }
-
-                    else
-                    {
-                        button1.Invoke(new Action(() =>
-                        {
-                            button1.Enabled = true;
-                        }));
-                    }
-                    MessageBox.Show("Error no se encuentra servidor");
-                    conectar = null;
-
-
-
-                }
-                if (panel1.Controls.Count == 0)
-                {
-                    if (button1.InvokeRequired)
-                    {
-
-                        button1.Invoke(new Action(() =>
-                        {
-                            button1.Enabled = true;
-                        }));
-                    }
-                }
-
-
-            });
-
-
-
-            conectar.Start();
-
-
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, "No se pudo iniciar sesión: " + ex.Message, "Antihook", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            finally { button1.Enabled = true; }
         }
 
         private void Anthook_baneado()

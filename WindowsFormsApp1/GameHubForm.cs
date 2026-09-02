@@ -8,9 +8,15 @@ namespace WindowsFormsApp1
     {
         private readonly TableLayoutPanel games;
         private readonly Label sessionLabel;
+        private readonly Antihookclient.WebSocketAntiHookClient websocketClient;
 
-        public GameHubForm(string username, bool isAdmin)
+        public GameHubForm(string username, bool isAdmin) : this(username, isAdmin, null)
         {
+        }
+
+        public GameHubForm(string username, bool isAdmin, Antihookclient.WebSocketAntiHookClient websocketClient)
+        {
+            this.websocketClient = websocketClient;
             Text = "Antihook | GameHub";
             StartPosition = FormStartPosition.CenterScreen;
             MinimumSize = new Size(860, 520);
@@ -62,7 +68,7 @@ namespace WindowsFormsApp1
 
         private void OpenBattlefield3(object sender, EventArgs e)
         {
-            using (var form = new Battlefield3Form()) form.ShowDialog(this);
+            using (var form = new Battlefield3Form(websocketClient)) form.ShowDialog(this);
         }
 
         private void OpenAdmin(object sender, EventArgs e)
@@ -74,9 +80,15 @@ namespace WindowsFormsApp1
     public sealed class Battlefield3Form : Form
     {
         private readonly DataGridView servers = new DataGridView();
+        private readonly Antihookclient.WebSocketAntiHookClient websocketClient;
 
-        public Battlefield3Form()
+        public Battlefield3Form() : this(null)
         {
+        }
+
+        public Battlefield3Form(Antihookclient.WebSocketAntiHookClient websocketClient)
+        {
+            this.websocketClient = websocketClient;
             Text = "Antihook | Battlefield 3";
             StartPosition = FormStartPosition.CenterParent;
             Size = new Size(900, 560);
@@ -102,6 +114,23 @@ namespace WindowsFormsApp1
             servers.Columns.Add("ping", "Ping");
             layout.Controls.Add(servers, 0, 1);
             Controls.Add(layout);
+            if (this.websocketClient != null)
+            {
+                this.websocketClient.ServersUpdated += OnServersUpdated;
+                FormClosed += delegate { this.websocketClient.ServersUpdated -= OnServersUpdated; };
+            }
+        }
+
+        private void OnServersUpdated(System.Collections.Generic.List<BF3AntiHook.BF3AntiHook.Servers> snapshot)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<System.Collections.Generic.List<BF3AntiHook.BF3AntiHook.Servers>>(OnServersUpdated), snapshot);
+                return;
+            }
+            servers.Rows.Clear();
+            foreach (var item in snapshot)
+                servers.Rows.Add(item.gname, item.levelocation, item.playersonline + "/" + item.maxplaers, "—");
         }
     }
 }
