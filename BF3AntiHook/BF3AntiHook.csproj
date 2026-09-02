@@ -87,6 +87,7 @@
     <Compile Include="BF3AntiHook\Servers.cs" />
     <Compile Include="BF3AntiHook\User.cs" />
     <Compile Include="BF3AntiHook\WebSocketProtocol.cs" />
+    <Compile Include="BF3AntiHook\WebSocketAntiHookServer.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
