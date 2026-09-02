@@ -37,16 +37,18 @@ namespace BF3AntiHook.BF3AntiHook
       List<User> userList = new List<User>();
       using (MySqlCommand command = this.conection.CreateCommand())
       {
-        ((DbCommand) command).CommandText = "SELECT * FROM a_emu_playerinfo;";
+        ((DbCommand) command).CommandText = "SELECT user_id, username, password, AuthCode, devTeam, login_ip FROM a_emu_playerinfo;";
         using (MySqlDataReader mySqlDataReader = command.ExecuteReader())
         {
           while (((DbDataReader) mySqlDataReader).Read())
             userList.Add(new User()
             {
-              AutToken = mySqlDataReader.GetString("AuthCode"),
+              AutToken = mySqlDataReader.IsDBNull(mySqlDataReader.GetOrdinal("AuthCode")) ? "" : mySqlDataReader.GetString("AuthCode"),
               Password = mySqlDataReader.GetString("password"),
               Username = mySqlDataReader.GetString("username"),
-              userid = mySqlDataReader.GetInt32("user_id").ToString()
+              userid = mySqlDataReader.GetInt32("user_id").ToString(),
+              Role = mySqlDataReader.GetInt32("devTeam") != 0 ? "admin" : "player",
+              IP = mySqlDataReader.IsDBNull(mySqlDataReader.GetOrdinal("login_ip")) ? "" : mySqlDataReader.GetString("login_ip")
             });
         }
       }
