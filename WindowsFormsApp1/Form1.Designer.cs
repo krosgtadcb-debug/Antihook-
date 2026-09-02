@@ -48,7 +48,7 @@
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(100, 20);
             this.textBox1.TabIndex = 0;
-            this.textBox1.Text = "172.206.249.36";
+            this.textBox1.Text = "";
             this.textBox1.TextChanged += new System.EventHandler(this.TextBox1_TextChanged);
             // 
             // textBox2
@@ -57,7 +57,7 @@
             this.textBox2.Name = "textBox2";
             this.textBox2.Size = new System.Drawing.Size(100, 20);
             this.textBox2.TabIndex = 1;
-            this.textBox2.Text = "Chichimoker";
+            this.textBox2.Text = "";
             // 
             // label1
             // 
@@ -66,7 +66,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(55, 13);
             this.label1.TabIndex = 2;
-            this.label1.Text = "Username";
+            this.label1.Text = "Usuario";
             // 
             // textBox3
             // 
@@ -74,7 +74,8 @@
             this.textBox3.Name = "textBox3";
             this.textBox3.Size = new System.Drawing.Size(107, 20);
             this.textBox3.TabIndex = 3;
-            this.textBox3.Text = "291203";
+            this.textBox3.Text = "";
+            this.textBox3.UseSystemPasswordChar = true;
             // 
             // label2
             // 
@@ -83,7 +84,7 @@
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(50, 13);
             this.label2.TabIndex = 4;
-            this.label2.Text = "Server Ip";
+            this.label2.Text = "Servidor";
             // 
             // label3
             // 
@@ -92,26 +93,26 @@
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(53, 13);
             this.label3.TabIndex = 5;
-            this.label3.Text = "Password";
+            this.label3.Text = "Contraseña";
             this.label3.Click += new System.EventHandler(this.Label3_Click);
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(356, 41);
+            this.button1.Location = new System.Drawing.Point(356, 39);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(65, 23);
+            this.button1.Size = new System.Drawing.Size(110, 28);
             this.button1.TabIndex = 7;
-            this.button1.Text = "Connect";
+            this.button1.Text = "Iniciar sesión";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.Button1_Click);
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(3, 437);
+            this.button2.Location = new System.Drawing.Point(12, 437);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
             this.button2.TabIndex = 8;
-            this.button2.Text = "Update";
+            this.button2.Text = "Actualizar";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.Button2_Click);
             // 
@@ -141,7 +142,7 @@
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(333, 15);
             this.label5.TabIndex = 11;
-            this.label5.Text = "Created by Chichimokers ernestico833@gmail.com";
+            this.label5.Text = "Antihook BF3 · OxyMonster";
             // 
             // label6
             // 
@@ -151,7 +152,7 @@
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(48, 13);
             this.label6.TabIndex = 12;
-            this.label6.Text = "V 2.0.0";
+            this.label6.Text = "Versión 1.0 · WebSocket";
             // 
             // Form1
             // 
@@ -171,7 +172,9 @@
             this.Controls.Add(this.textBox2);
             this.Controls.Add(this.textBox1);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "Antihook BF3 | Iniciar sesión";
+            this.BackColor = System.Drawing.Color.FromArgb(18, 24, 38);
+            this.ForeColor = System.Drawing.Color.White;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);

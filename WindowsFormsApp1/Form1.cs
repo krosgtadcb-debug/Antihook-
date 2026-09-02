@@ -19,6 +19,15 @@ namespace WindowsFormsApp1
         public Form1()
         {
             InitializeComponent();
+            var fieldBack = Color.FromArgb(29, 38, 58);
+            var fieldFore = Color.FromArgb(235, 240, 255);
+            textBox1.BackColor = fieldBack; textBox1.ForeColor = fieldFore;
+            textBox2.BackColor = fieldBack; textBox2.ForeColor = fieldFore;
+            textBox3.BackColor = fieldBack; textBox3.ForeColor = fieldFore;
+            panel1.BackColor = Color.FromArgb(23, 31, 48);
+            button1.BackColor = Color.FromArgb(45, 116, 180); button1.ForeColor = Color.White; button1.FlatStyle = FlatStyle.Flat; button1.FlatAppearance.BorderSize = 0;
+            button2.BackColor = Color.FromArgb(53, 63, 84); button2.ForeColor = Color.White; button2.FlatStyle = FlatStyle.Flat; button2.FlatAppearance.BorderSize = 0;
+            label1.ForeColor = fieldFore; label2.ForeColor = fieldFore; label3.ForeColor = fieldFore;
         }
 
         private void Label3_Click(object sender, EventArgs e)
