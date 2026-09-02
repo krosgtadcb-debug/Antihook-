@@ -13,7 +13,7 @@ namespace BF3AntiHook
 {
     public partial class Form1 : Form
     {
-        private BF3AntiHook.AntiHookServer server;
+        private BF3AntiHook.WebSocketAntiHookServer server;
         private int conected;
         public Form1()
         {
@@ -33,9 +33,14 @@ namespace BF3AntiHook
         private void button1_Click(object sender, EventArgs e)
         {
             
-            //server = new BF3AntiHook.AntiHookServer(Convert.ToInt32(textBox1.Text), Server_evento,"bf4","bf","127.0.0.1",3306,"bf4");
-            server = new BF3AntiHook.AntiHookServer(Convert.ToInt32(textBox1.Text), Server_evento, "root", "bf", "127.0.0.1", 3306, "");
-            server.PlayerConnecte += Server_PlayerConnecte;
+            if (server != null)
+            {
+                MessageBox.Show(this, "El servidor ya está iniciado.", "Antihook", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            server = new BF3AntiHook.WebSocketAntiHookServer(Convert.ToInt32(textBox1.Text), "root", "bf", "127.0.0.1", 3306, "");
+            server.Info += Server_evento;
+            server.PlayerConnected += Server_PlayerConnecte;
             server.Start();
         }
 
