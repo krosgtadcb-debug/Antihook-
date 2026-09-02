@@ -98,6 +98,10 @@ namespace BF3AntiHook.BF3AntiHook
                         session.SubscribedToServers = true;
                         await SendServerSnapshotAsync(session, cancellationToken).ConfigureAwait(false);
                     }
+                    else if (envelope.Type == WebSocketMessageTypes.AdminUsersList)
+                    {
+                        await SendUsersListAsync(session, cancellationToken).ConfigureAwait(false);
+                    }
                     else if (envelope.Type == WebSocketMessageTypes.AdminUserAction)
                     {
                         await HandleAdminActionAsync(session, envelope, cancellationToken).ConfigureAwait(false);
@@ -145,6 +149,22 @@ namespace BF3AntiHook.BF3AntiHook
             var session = new Session(Guid.NewGuid().ToString("N"), matched, endpoint == null ? "" : endpoint.Address.ToString());
             await SendAsync(socket, WebSocketEnvelope.Create(WebSocketMessageTypes.AuthOk, new { SessionId = session.Id, Token = Guid.NewGuid().ToString("N") }, sessionId: session.Id), cancellationToken).ConfigureAwait(false);
             return session;
+        }
+
+        private async Task SendUsersListAsync(Session session, CancellationToken cancellationToken)
+        {
+            if (!String.Equals(session.User.Role, "admin", StringComparison.OrdinalIgnoreCase))
+            {
+                await SendAsync(session.Socket, WebSocketEnvelope.Create(WebSocketMessageTypes.AuthError, new { Message = "Permisos insuficientes" }, sessionId: session.Id), cancellationToken).ConfigureAwait(false);
+                return;
+            }
+            var users = new List<object>();
+            foreach (var entry in sessions)
+            {
+                var user = entry.Value.User;
+                users.Add(new { Name = user.Username, HWID = user.HWID, IP = entry.Value.Ip, LongIP = user.LongIP });
+            }
+            await SendAsync(session.Socket, WebSocketEnvelope.Create(WebSocketMessageTypes.AdminUsersList, new { Users = users }, sessionId: session.Id), cancellationToken).ConfigureAwait(false);
         }
 
         private async Task HandleAdminActionAsync(Session session, WebSocketEnvelope envelope, CancellationToken cancellationToken)

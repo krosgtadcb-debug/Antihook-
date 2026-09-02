@@ -10,6 +10,16 @@ namespace WindowsFormsApp1
         private readonly DataGridView users = new DataGridView();
         private readonly ContextMenuStrip userMenu = new ContextMenuStrip();
         private readonly Action<string, string, string> executeAction;
+        private Antihookclient.WebSocketAntiHookClient websocketClient;
+
+        public AdminUsersForm(Antihookclient.WebSocketAntiHookClient websocketClient)
+            : this(new List<BF3AntiHook.BF3AntiHook.User>(), (action, user, reason) => websocketClient.SendAdminActionAsync(action, user, reason, System.Threading.CancellationToken.None).ContinueWith(t => { }))
+        {
+            this.websocketClient = websocketClient;
+            websocketClient.UsersUpdated += OnUsersUpdated;
+            FormClosed += delegate { websocketClient.UsersUpdated -= OnUsersUpdated; };
+            _ = websocketClient.RequestUsersAsync(System.Threading.CancellationToken.None);
+        }
 
         public AdminUsersForm(IEnumerable<BF3AntiHook.BF3AntiHook.User> connectedUsers, Action<string, string, string> executeAction)
         {
@@ -75,6 +85,18 @@ namespace WindowsFormsApp1
                 dialog.Controls.Add(input); dialog.Controls.Add(ok); dialog.AcceptButton = ok;
                 return dialog.ShowDialog(this) == DialogResult.OK ? input.Text.Trim() : null;
             }
+        }
+
+        private void OnUsersUpdated(List<Antihookclient.WebSocketAntiHookClient.AdminUserView> snapshot)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<List<Antihookclient.WebSocketAntiHookClient.AdminUserView>>(OnUsersUpdated), snapshot);
+                return;
+            }
+            users.Rows.Clear();
+            foreach (var user in snapshot)
+                users.Rows.Add(user.Name, user.HWID, user.IP, user.LongIP);
         }
 
         private void UsersMouseDown(object sender, MouseEventArgs e)

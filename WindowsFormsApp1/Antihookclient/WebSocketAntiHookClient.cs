@@ -23,6 +23,7 @@ namespace WindowsFormsApp1.Antihookclient
 
         public event Action<bool> ConnectionChanged;
         public event Action<List<Servers>> ServersUpdated;
+        public event Action<List<AdminUserView>> UsersUpdated;
         public event Action<string> Notification;
 
         public bool IsConnected { get { return socket.State == WebSocketState.Open; } }
@@ -52,6 +53,11 @@ namespace WindowsFormsApp1.Antihookclient
         public Task SubscribeBattlefield3Async(CancellationToken cancellationToken)
         {
             return SendAsync(WebSocketEnvelope.Create(WebSocketMessageTypes.ServersSubscribe, new { GameId = "bf3" }, sessionId: sessionId), cancellationToken);
+        }
+
+        public Task RequestUsersAsync(CancellationToken cancellationToken)
+        {
+            return SendAsync(WebSocketEnvelope.Create(WebSocketMessageTypes.AdminUsersList, null, sessionId: sessionId), cancellationToken);
         }
 
         public async Task SendAdminActionAsync(string action, string userId, string reason, CancellationToken cancellationToken)
@@ -110,6 +116,11 @@ namespace WindowsFormsApp1.Antihookclient
                         var payload = JsonConvert.DeserializeObject<ServersUpdatedPayload>(JsonConvert.SerializeObject(envelope.Payload));
                         ServersUpdated?.Invoke(payload.Servers ?? new List<Servers>());
                     }
+                    else if (envelope.Type == WebSocketMessageTypes.AdminUsersList)
+                    {
+                        var payload = JsonConvert.DeserializeObject<AdminUsersPayload>(JsonConvert.SerializeObject(envelope.Payload));
+                        UsersUpdated?.Invoke(payload.Users ?? new List<AdminUserView>());
+                    }
                     else if (envelope.Type == WebSocketMessageTypes.SpeechNotification || envelope.Type == WebSocketMessageTypes.AdminEvent)
                     {
                         Notification?.Invoke(JsonConvert.SerializeObject(envelope.Payload));
@@ -138,6 +149,19 @@ namespace WindowsFormsApp1.Antihookclient
             if (cancellation != null) cancellation.Cancel();
             socket.Dispose();
             if (cancellation != null) cancellation.Dispose();
+        }
+
+        public sealed class AdminUserView
+        {
+            public string Name { get; set; }
+            public string HWID { get; set; }
+            public string IP { get; set; }
+            public string LongIP { get; set; }
+        }
+
+        private sealed class AdminUsersPayload
+        {
+            public List<AdminUserView> Users { get; set; }
         }
 
         private sealed class AuthOkPayload

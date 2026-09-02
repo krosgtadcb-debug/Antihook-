@@ -73,7 +73,12 @@ namespace WindowsFormsApp1
 
         private void OpenAdmin(object sender, EventArgs e)
         {
-            MessageBox.Show(this, "El panel administrativo se conectará al canal WebSocket seguro en la siguiente iteración.", "Administración", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (websocketClient == null)
+            {
+                MessageBox.Show(this, "No hay una sesión WebSocket activa.", "Administración", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            using (var form = new AdminUsersForm(websocketClient)) form.ShowDialog(this);
         }
     }
 
