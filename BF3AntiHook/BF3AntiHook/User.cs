@@ -17,5 +17,11 @@ namespace BF3AntiHook.BF3AntiHook
     public string AutToken { get; set; }
 
     public string IP { get; set; }
+
+    public string LongIP { get; set; }
+
+    public string HWID { get; set; }
+
+    public string Role { get; set; }
   }
 }
