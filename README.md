@@ -23,4 +23,4 @@ python run.py  # o npm run dev
 
 ---
 
-(c) 2026 Chichimokers - Proyecto Privado
+(c) 2026 OxyMonster - Proyecto Privado
